@@ -71,8 +71,13 @@ dataset['review_body'] = dataset['review_body'].apply(lambda x: ' '.join([word f
 embedding_weights = "http://nlp.stanford.edu/data/glove.42B.300d.zip"
 
 with requests.get(embedding_weights, stream=True) as r:
+    total_size_in_bytes = int(r.headers.get('content-length', 0))
+    block_size = 4096
+    progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
     with open('glove.zip', 'wb') as f:
-        shutil.copyfileobj(r.raw, f)
+        for data in r.iter_content(block_size):
+            f.write(data)
+            progress_bar.update(len(data))
 #%%
 
 

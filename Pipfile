@@ -11,6 +11,11 @@ pandas = "*"
 tensorflow = "*"
 numpy = "*"
 scikit-learn = "*"
+click = "*"
+kfp = "*"
+kubernetes = "*"
+nltk = "*"
+tqdm = "*"
 
 [requires]
 python_version = "3.8"

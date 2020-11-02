@@ -12,7 +12,7 @@ class Transformer:
     def predict(self, X, num_words, max_length):
         logging.warning(X)
         X_tokenized = Transformer.tokenize_text(X, num_words, max_length)
-        logging.warning(X_tokenized)
+        # logging.warning(X_tokenized)
         return X_tokenized
 
     def fit(self, X, y=None, **fit_params):

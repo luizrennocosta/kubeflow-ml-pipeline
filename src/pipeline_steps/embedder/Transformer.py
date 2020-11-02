@@ -3,12 +3,13 @@ import pandas as pd
 import logging
 import nltk
 import numpy as np
-
+from tqdm import tqdm
+from pathlib import Path
 class Transformer:
     def predict(self, X, path_to_glove_file):
-        logging.warning(X)
+        # logging.warning(X)
         embedding_matrix = Transformer.create_embed_matrix(X, path_to_glove_file)
-        logging.warning(embedding_matrix)
+        # logging.warning(embedding_matrix)
         return embedding_matrix
 
     def fit(self, X, y=None, **fit_params):
@@ -20,17 +21,21 @@ class Transformer:
         hits = 0
         misses = 0
         embeddings_index = {}
-        with open(path_to_glove_file) as f:
-            for line in f:
-                word, coefs = line.split(maxsplit=1)
-                coefs = np.fromstring(coefs, "f", sep=" ")
-                embeddings_index[word] = coefs
-                
-        embedding_dim = coefs.shape[1]
-        print("Found %s word vectors." % len(embeddings_index))
+        logging.info("Verifying pre-embedded words")
+        with tqdm(total=Path(path_to_glove_file).stat().st_size) as pbar:
+            with open(path_to_glove_file) as f:
+                for line in f:
+                    word, coefs = line.split(maxsplit=1)
+                    coefs = np.fromstring(coefs, "f", sep=" ")
+                    embeddings_index[word] = coefs
+                    pbar.update(len(line))
+        
+        logging.info(f"coefs shape: {coefs.shape}")
+        embedding_dim = coefs.shape[0]
+        logging.info("Found %s word vectors." % len(embeddings_index))
 
         embedding_matrix = np.zeros((num_tokens, embedding_dim))
-        for word, i in word_index.items():
+        for word, i in tqdm(word_index.items()):
             embedding_vector = embeddings_index.get(word)
             if embedding_vector is not None:
                 # Words not found in embedding index will be all-zeros.
@@ -39,5 +44,5 @@ class Transformer:
                 hits += 1
             else:
                 misses += 1
-        print("Converted %d words (%d misses)" % (hits, misses))
+        logging.info("Converted %d words (%d misses)" % (hits, misses))
         return embedding_matrix

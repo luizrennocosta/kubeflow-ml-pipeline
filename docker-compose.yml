@@ -1,0 +1,16 @@
+version: '2.3'
+
+services:
+  kubeflow-component:
+    image: component-kubeflow:0.1
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: /bin/bash
+    volumes:
+      - ./src:/src
+      - ./data:/mnt
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+  

@@ -2,6 +2,10 @@ import click
 import numpy as np
 import dill
 from sklearn.feature_extraction.text import TfidfVectorizer
+import logging
+import sys
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 try:
     # Running for tests

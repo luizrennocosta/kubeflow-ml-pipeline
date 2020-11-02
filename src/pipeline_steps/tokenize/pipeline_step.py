@@ -19,9 +19,10 @@ except:
 def run_pipeline(in_path, out_path, word_index_path, num_words, max_length):
 
     keras_tokenizer_transformer = Transformer()
-
     with open(in_path, "rb") as in_f:
         x = dill.load(in_f)
+        
+    x = x.flatten()
 
     y, word_index = keras_tokenizer_transformer.predict(x, num_words, max_length)
     with open(out_path, "wb") as out_f:

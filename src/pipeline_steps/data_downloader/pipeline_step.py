@@ -1,11 +1,12 @@
 import click
 import dill
 import pandas as pd
-import urllib.requests2i build . seldonio/seldon-core-s2i-python3s2i build . seldonio/seldon-core-s2i-python3
 import shutil
 import zipfile
 from sklearn.preprocessing import LabelEncoder
-
+import sys
+import logging
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 @click.command()
 @click.option('--labels-path', default="/mnt/labels.data")
 @click.option('--features-path', default="/mnt/features.data")
@@ -25,18 +26,23 @@ def run_pipeline(
         features_column,
         labels_column):
 
+    logging.info('Beginning Download')
+
     # Downloading and saving data
     df = pd.read_csv(csv_url, compression=csv_compression, 
     sep=csv_separator, error_bad_lines=False, names=column_names)
 
     x = df[[features_column]]
 
+    logging.info('Saving features')
     with open(features_path, "wb") as out_f:
         dill.dump(x, out_f)
 
+    # Encoding labels
     encoder = LabelEncoder()
     y = encoder.fit_transform(df[labels_column])
 
+    logging.info('Saving labels')
     with open(labels_path, "wb") as out_f:
         dill.dump(y, out_f)
 
