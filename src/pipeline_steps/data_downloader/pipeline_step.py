@@ -1,6 +1,10 @@
 import click
 import dill
 import pandas as pd
+import urllib.requests2i build . seldonio/seldon-core-s2i-python3s2i build . seldonio/seldon-core-s2i-python3
+import shutil
+import zipfile
+from sklearn.preprocessing import LabelEncoder
 
 @click.command()
 @click.option('--labels-path', default="/mnt/labels.data")
@@ -21,6 +25,7 @@ def run_pipeline(
         features_column,
         labels_column):
 
+    # Downloading and saving data
     df = pd.read_csv(csv_url, compression=csv_compression, 
     sep=csv_separator, error_bad_lines=False, names=column_names)
 
@@ -29,7 +34,8 @@ def run_pipeline(
     with open(features_path, "wb") as out_f:
         dill.dump(x, out_f)
 
-    y = df[[labels_column]]
+    encoder = LabelEncoder()
+    y = encoder.fit_transform(df[labels_column])
 
     with open(labels_path, "wb") as out_f:
         dill.dump(y, out_f)

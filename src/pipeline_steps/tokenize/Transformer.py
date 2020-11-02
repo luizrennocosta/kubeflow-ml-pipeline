@@ -28,4 +28,4 @@ class Transformer:
         train_padded = pad_sequences(
             train_sequences, padding="post", truncating="post", maxlen=max_length
         )
-        return train_padded
+        return train_padded, tokenizer.word_index

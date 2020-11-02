@@ -1,2 +1,5 @@
 pandas
 dill
+click
+shutil
+scikit-learn

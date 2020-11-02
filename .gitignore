@@ -1,2 +1,5 @@
 data/*
 .vscode/*
+*.txt
+.ipynb_checkpoints
+.s2i

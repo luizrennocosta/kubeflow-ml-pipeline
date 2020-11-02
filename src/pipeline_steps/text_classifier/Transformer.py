@@ -1,29 +1,15 @@
-import re
-import pandas as pd
+import dill
 import logging
-import nltk
-nltk.download('stopwords')
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 
+class Transformer(object):
+    def __init__(self):
 
-class Transformer():
+        with open('/mnt/lr.model', 'rb') as model_file:
+            self._lr_model = dill.load(model_file)
 
-    def predict(self, X, num_words):
+    def predict(self, X, feature_names):
         logging.warning(X)
-        X_tokenized = Transformer.transform_clean_text(X, num_words)
-        logging.warning(X_tokenized)
-        return X_tokenized
+        prediction = self._lr_model.predict_proba(X)
+        logging.warning(prediction)
+        return prediction
 
-    def fit(self, X, y=None, **fit_params):
-        return self
-    
-    @staticmethod
-    def tokenize_text(train_text, num_words):
-
-        tokenizer = Tokenizer(num_words= num_words, lower=False, oov_token='<OOV>')
-        tokenizer.fit_on_texts(train_text)
-        
-        train_sequences = tokenizer.texts_to_sequences(train_text)
-        train_padded = pad_sequences(train_sequences, padding='post', truncating='post', maxlen=max_length)
-        return train_padded
