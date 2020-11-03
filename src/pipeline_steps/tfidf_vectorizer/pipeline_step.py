@@ -8,7 +8,7 @@ import sys
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 @click.command()
-@click.option('--in-path', default="/mnt/clean_text.data")
+@click.option('--in-path', default="/mnt/data/train.data")
 @click.option('--out-path', default="/mnt/tfidf_vectors.data")
 @click.option('--max-features', default=5000)
 @click.option('--ngram-range', default=3)
@@ -24,7 +24,7 @@ def run_pipeline(
         model_path):
 
     with open(in_path, 'rb') as in_f:
-        x = dill.load(in_f)
+        x, labels = dill.load(in_f)
         x = x.flatten()
 
     if action == "train":
@@ -33,12 +33,9 @@ def run_pipeline(
             preprocessor=lambda x: x, # We're using cleantext
             tokenizer=None, # We're using spacy
             ngram_range=(1, ngram_range))
-        print(x)
 
-        y = tfidf_vectorizer.fit_transform(x)
-        logging.info('y:')
-        logging.info(y)
-        logging.info("saving vectorizer",)
+        tfidf_vectorizer.fit(x)
+        logging.info("Saving vectorizer",)
         with open(model_path, "wb") as model_f:
             dill.dump(tfidf_vectorizer, model_f)
 
@@ -46,10 +43,11 @@ def run_pipeline(
         with open(model_path, "rb") as model_f:
             tfidf_vectorizer = dill.load(model_f)
 
+    logging.info('Predicting')
     y = tfidf_vectorizer.transform(x)
-
+    logging.info('Saving output')
     with open(out_path, "wb") as out_f:
-        dill.dump(y, out_f)
+        dill.dump((y, labels), out_f)
 
 if __name__ == "__main__":
     run_pipeline()

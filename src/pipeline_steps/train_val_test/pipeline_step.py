@@ -5,9 +5,9 @@ from sklearn.model_selection import train_test_split
 from pathlib import Path
 
 @click.command()
-@click.option("--in-path", default="/mnt/tokenized_text.data")
+@click.option("--in-path", default="/mnt/clean_text.data")
 @click.option("--labels-path", default="/mnt/labels.data")
-@click.option("--out-folder", default="/mnt")
+@click.option("--out-folder", default="/mnt/data")
 @click.option("--train-ratio", default=0.98)
 @click.option("--validation-ratio", default=0.01)
 @click.option("--test-ratio", default=0.01)

@@ -17,8 +17,7 @@ logging.basicConfig(
 
 @click.command()
 @click.option("--url", default="http://nlp.stanford.edu/data/glove.42B.300d.zip")
-@click.option("--embedding-weights", default="glove.42B.300d.txt")
-def run_pipeline(url, embedding_weights):
+def run_pipeline(url):
 
     # Downloading and saving pre-trained embeddings
     filename = url.split("/")[-1]

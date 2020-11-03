@@ -7,33 +7,31 @@ from sklearn.linear_model import LogisticRegression
 @click.option('--in-path', default="/mnt/tfidf_vectors.data")
 @click.option('--labels-path', default="/mnt/labels.data")
 @click.option('--out-path', default="/mnt/lr_prediction.data")
-@click.option("--data-folder", default="/mnt")
 
 
 @click.option('--c-param', default=0.1)
 @click.option('--action', default="train", 
         type=click.Choice(['predict', 'train']))
-@click.option('--model-path', default="/mnt/lr_text.model")
+@click.option('--model-path', default="/mnt/model/lr_text.model")
 def run_pipeline(
         in_path, 
         labels_path,
         out_path,
-        data_folder, 
         c_param,
         action,
         model_path):
 
     with open(in_path, 'rb') as in_f:
-        x = dill.load(in_f)
+        x,labels = dill.load(in_f)
 
-    
+
     if action == "train":
         lr_model = LogisticRegression(
                 C=0.1, 
                 solver='sag')
 
-        with open(labels_path, "rb") as f:
-            labels = dill.load(f)
+        # with open(labels_path, "rb") as f:
+        #     labels = dill.load(f)
 
         lr_model.fit(x, labels)
 
