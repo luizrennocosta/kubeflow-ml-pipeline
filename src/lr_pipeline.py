@@ -1,9 +1,10 @@
 import kfp.dsl as dsl
+import yaml
 
 
 @dsl.pipeline(
   name='NLP',
-  description='A pipeline demonstrating reproducible steps for NLP'
+  description='A pipeline demonstrating reproducible steps for NLP using logistic regression'
 )
 def nlp_pipeline(
         csv_url="https://s3.amazonaws.com/amazon-reviews-pds/tsv/amazon_reviews_multilingual_UK_v1_00.tsv.gz",
@@ -32,8 +33,8 @@ def nlp_pipeline(
     Pipeline
     """
     vop = dsl.VolumeOp(
-      name='my-pvc',
-      resource_name="my-pvc",
+      name='lr-pvc',
+      resource_name="lr-pvc",
       modes=["ReadWriteMany"],
       size="30Gi"
     )
@@ -50,17 +51,6 @@ def nlp_pipeline(
             "--csv-url", csv_url,
             "--features-column", features_column,
             "--labels-column", labels_column
-        ],
-        pvolumes={"/mnt": vop.volume}
-    )
-
-    download_embed_step = dsl.ContainerOp(
-        name='embed_weights_downloader',
-        image='docker.io/cyferino/component-kubeflow:0.0.14',
-        command="python",
-        arguments=[
-            "/src/pipeline_steps/weights_downloader/pipeline_step.py",
-            "--url", embed_weights_url
         ],
         pvolumes={"/mnt": vop.volume}
     )
@@ -93,142 +83,121 @@ def nlp_pipeline(
         pvolumes={"/mnt": vop.volume}
     ).after(clean_step)
 
-    tokenize_step = dsl.ContainerOp(
-        name='tokenize',
+    tfidf_step = dsl.ContainerOp(
+        name='tfidf',
         image='docker.io/cyferino/component-kubeflow:0.0.14',
         command="python",
         arguments=[
-            "/src/pipeline_steps/tokenize/pipeline_step.py",
+            "/src/pipeline_steps/tfidf_vectorizer/pipeline_step.py",
             "--in-path", "/mnt/data/train.data",
             "--out-path", tokens_path,
-            "--word-index-path", word_index_path,
-            "--tokenizer-path", "/mnt/tokenizer.model",
+            "--model-path", "/mnt/tfidf.model",
             "--action", "train",
-            "--num-words", num_words,
-            "--max-length", sentence_max_length,
+            "--ngram-range", 2,
+            "--max-features", 1000,
         ],
         pvolumes={"/mnt": vop.volume}
     ).after(data_split_step)
 
-    tokenize_step_val = dsl.ContainerOp(
-        name='val_tokenize',
+    tfidf_step_val = dsl.ContainerOp(
+        name='tfidf_val',
         image='docker.io/cyferino/component-kubeflow:0.0.14',
         command="python",
         arguments=[
-            "/src/pipeline_steps/tokenize/pipeline_step.py",
+            "/src/pipeline_steps/tfidf_vectorizer/pipeline_step.py",
             "--in-path", "/mnt/data/val.data",
             "--out-path", "/mnt/data/tokenized_val.data",
-            "--word-index-path", word_index_path,
-            "--tokenizer-path", "/mnt/tokenizer.model",
+            "--model-path", "/mnt/tfidf.model",
             "--action", "predict",
-            "--num-words", num_words,
-            "--max-length", sentence_max_length,
         ],
         pvolumes={"/mnt": vop.volume}
-    ).after(tokenize_step)
+    ).after(tfidf_step)
 
-    tokenize_step_test = dsl.ContainerOp(
-        name='test_tokenize',
+    tfidf_step_test = dsl.ContainerOp(
+        name='tfidf_test',
         image='docker.io/cyferino/component-kubeflow:0.0.14',
         command="python",
         arguments=[
-            "/src/pipeline_steps/tokenize/pipeline_step.py",
+            "/src/pipeline_steps/tfidf_vectorizer/pipeline_step.py",
             "--in-path", "/mnt/data/test.data",
             "--out-path", "/mnt/data/tokenized_test.data",
-            "--word-index-path", word_index_path,
-            "--tokenizer-path", "/mnt/tokenizer.model",
+            "--model-path", "/mnt/tfidf.model",
             "--action", "predict",
-            "--num-words", num_words,
-            "--max-length", sentence_max_length,
         ],
         pvolumes={"/mnt": vop.volume}
-    ).after(tokenize_step)
-
-    embedding_step = dsl.ContainerOp(
-        name='embedder',
-        image='docker.io/cyferino/component-kubeflow:0.0.14',
-        command="python",
-        arguments=[
-            "/src/pipeline_steps/embedder/pipeline_step.py",
-            "--in-path", word_index_path,
-            "--out-path", embedded_matrix_path,
-            "--glove-file", pre_embedded_weights,
-        ],
-        pvolumes={"/mnt": vop.volume}
-    ).after(tokenize_step, download_embed_step)
+    ).after(tfidf_step)
 
     train_step = dsl.ContainerOp(
         name='predictor',
         image='docker.io/cyferino/component-kubeflow:0.0.14',
         command="python",
         arguments=[
-            "/src/pipeline_steps/deep_classifier/pipeline_step.py",
+            "/src/pipeline_steps/lr_text_model/pipeline_step.py",
             "--in-path", tokens_path,
-            "--embed-weight", embedded_matrix_path,
             "--out-path", model_prediction_path,
+            "--model-path", '/mnt/lr_text.model',
             "--action", "train",
-            "--model-path", deep_model,
-            "--epochs", 20,
-            "--batch-size", 1024,
-            "--optimizer", "rmsprop",
-            "--metrics", ["acc"]
+            "--c-param", 0.1,
         ],
         pvolumes={"/mnt": vop.volume}
-    ).after(embedding_step)
+    ).after(tfidf_step)
 
     predict_val = dsl.ContainerOp(
         name='val_predictor',
         image='docker.io/cyferino/component-kubeflow:0.0.14',
         command="python",
         arguments=[
-            "/src/pipeline_steps/deep_classifier/pipeline_step.py",
+            "/src/pipeline_steps/lr_text_model/pipeline_step.py",
             "--in-path", "/mnt/data/tokenized_val.data",
-            "--embed-weight", embedded_matrix_path,
             "--out-path", '/mnt/predicted_val.data',
+            "--model-path", '/mnt/lr_text.model',
             "--action", "predict",
-            "--model-path", deep_model,
         ],
         pvolumes={"/mnt": vop.volume}
-    ).after(train_step, tokenize_step_val)
+    ).after(train_step, tfidf_step_val)
 
     predict_test = dsl.ContainerOp(
         name='test_predictor',
         image='docker.io/cyferino/component-kubeflow:0.0.14',
         command="python",
         arguments=[
-            "/src/pipeline_steps/deep_classifier/pipeline_step.py",
+            "/src/pipeline_steps/lr_text_model/pipeline_step.py",
             "--in-path", "/mnt/data/tokenized_test.data",
-            "--embed-weight", embedded_matrix_path,
             "--out-path", '/mnt/predicted_test.data',
+            "--model-path", '/mnt/lr_text.model',
             "--action", "predict",
-            "--model-path", deep_model,
         ],
         pvolumes={"/mnt": vop.volume}
-    ).after(train_step, tokenize_step_test)
+    ).after(train_step, tfidf_step_test)
 
     evaluate_model = dsl.ContainerOp(
         name='model_evaluator',
         image='docker.io/cyferino/component-kubeflow:0.0.14',
         command="python",
         arguments=[
-            "/src/pipeline_steps/deep_classifier/pipeline_step.py",
+            "/src/pipeline_steps/evaluate_model/pipeline_step.py",
             "--data-folder", "/mnt/data",
             "--predicted-train-data", '/mnt/predicted_train.data',
             "--predicted-val-data", '/mnt/predicted_val.data',
             "--predicted-test-data", '/mnt/predicted_test.data'
         ],
         pvolumes={"/mnt": vop.volume},
-        file_outputs={
-            'mlpipeline-metrics': '/mlpipeline-metrics.json',
-            'mlpipeline-ui-data': '/mlpipeline-ui-data.json'
-        },
-        output_artifact_paths={
-            'mlpipeline-metrics': '/mlpipeline-metrics.json',
-            'mlpipeline-ui-data': '/mlpipeline-ui-data.json'
-        }
+        file_outputs={'mlpipeline-metrics': '/mlpipeline-metrics.json',
+            'mlpipeline-ui-metadata': '/mlpipeline-ui-metadata.json'},
+        output_artifact_paths={'mlpipeline-metrics': '/mlpipeline-metrics.json',
+            'mlpipeline-ui-metadata': '/mlpipeline-ui-metadata.json'}
     ).after(train_step, predict_val, predict_test)
+
+    seldon_config = yaml.load(open("seldon_production_pipeline.yaml"))
+
+    deploy_step = dsl.ResourceOp(
+        name="seldondeploy",
+        k8s_resource=seldon_config,
+        attribute_outputs={"name": "{.metadata.name}"})
+
+    deploy_step.after(train_step)
 
 
 if __name__ == '__main__':
     import kfp.compiler as compiler
-    compiler.Compiler().compile(nlp_pipeline, __file__ + '.tar.gz')
+    compiler.Compiler().compile(nlp_pipeline, __file__ + '_lr.tar.gz')

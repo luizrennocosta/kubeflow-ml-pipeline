@@ -2,7 +2,7 @@ version: '2.3'
 
 services:
   kubeflow-component:
-    image: docker.io/cyferino/component-kubeflow:0.1
+    image: docker.io/cyferino/component-kubeflow:0.0.14
     build:
       context: .
       dockerfile: Dockerfile

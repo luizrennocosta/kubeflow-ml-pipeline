@@ -5,6 +5,8 @@ import nltk
 import numpy as np
 from tqdm import tqdm
 from pathlib import Path
+
+
 class Transformer:
     def predict(self, X, path_to_glove_file):
         # logging.warning(X)
@@ -29,7 +31,7 @@ class Transformer:
                     coefs = np.fromstring(coefs, "f", sep=" ")
                     embeddings_index[word] = coefs
                     pbar.update(len(line))
-        
+
         logging.info(f"coefs shape: {coefs.shape}")
         embedding_dim = coefs.shape[0]
         logging.info("Found %s word vectors." % len(embeddings_index))

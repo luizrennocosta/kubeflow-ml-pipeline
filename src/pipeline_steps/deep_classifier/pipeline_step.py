@@ -10,6 +10,7 @@ from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras.models import load_model
 from pathlib import Path
 
+
 def create_model(embedding_layer, n_classes):
     int_sequences_input = Input(shape=(None,), dtype="int64")
     embedded_sequences = embedding_layer(int_sequences_input)
@@ -26,7 +27,6 @@ def create_model(embedding_layer, n_classes):
 @click.option("--in-path", default="/mnt/tokenized_text.data")
 @click.option("--embed-weight", default="/mnt/embedded_matrix.data")
 @click.option("--out-path", default="/mnt/text_prediction.data")
-
 @click.option("--action", default="train", type=click.Choice(["predict", "train"]))
 @click.option("--model-path", default="/mnt/deep_text_model.h5")
 @click.option("--epochs", default=20)
@@ -51,7 +51,6 @@ def run_pipeline(
     with open(embed_weight, "rb") as ew_f:
         embedding_matrix = dill.load(ew_f)
 
-
     opm = RMSprop(learning_rate=0.01)
     print(embedding_matrix.shape)
     if action == "train":
@@ -65,9 +64,7 @@ def run_pipeline(
         deep_model.compile(
             loss="sparse_categorical_crossentropy", optimizer=opm, metrics=metrics
         )
-        deep_model.fit(
-            X, Y, validation_split=0.2, epochs=epochs, batch_size=batch_size
-        )
+        deep_model.fit(X, Y, validation_split=0.2, epochs=epochs, batch_size=batch_size)
 
         Y_hat = deep_model.predict(X)
         deep_model.save(model_path)

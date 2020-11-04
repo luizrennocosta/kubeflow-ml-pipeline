@@ -26,9 +26,7 @@ class Transformer:
         logging.info("Predicting")
         Y = self.tokenizer.texts_to_sequences(X)
         logging.info("Padding output")
-        Y = pad_sequences(
-            Y, padding="post", truncating="post", maxlen=self.max_length
-        )
+        Y = pad_sequences(Y, padding="post", truncating="post", maxlen=self.max_length)
         # logging.warning(X_tokenized)
         return Y, self.tokenizer.word_index
 

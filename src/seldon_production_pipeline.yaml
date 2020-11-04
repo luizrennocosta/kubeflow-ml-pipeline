@@ -1,0 +1,71 @@
+apiVersion: machinelearning.seldon.io/v1alpha2
+kind: SeldonDeployment
+metadata:
+  labels:
+    app: seldon
+  name: "seldon-deployment-{{workflow.name}}"
+  namespace: kubeflow
+spec:
+  annotations:
+    project_name: NLP Pipeline
+    deployment_version: v1
+  name: "seldon-deployment-{{workflow.name}}"
+  oauth_key: oauth-key
+  oauth_secret: oauth-secret
+  predictors:
+  - componentSpecs:
+    - spec:
+        containers:
+        - image: component-kubeflow:0.0.14
+          imagePullPolicy: IfNotPresent
+          name: cleantext
+          resources:
+            requests:
+              memory: 1Mi
+        - image: component-kubeflow:0.0.14
+          imagePullPolicy: IfNotPresent
+          name: tokenizer
+
+        - image: component-kubeflow:0.0.14
+          imagePullPolicy: IfNotPresent
+          name: tfidfvectorizer
+          volumeMounts:
+          - name: mypvc
+            mountPath: /mnt
+            
+        - image: component-kubeflow:0.0.14
+          imagePullPolicy: IfNotPresent
+          name: lrclassifier
+          volumeMounts:
+          - name: mypvc
+            mountPath: /mnt
+        terminationGracePeriodSeconds: 20
+        volumes:
+        - name: mypvc
+          persistentVolumeClaim:
+            claimName: "{{workflow.name}}-my-pvc"
+    graph:
+      children:
+      - name: tokenizer
+        endpoint:
+          type: REST
+        type: MODEL
+        children:
+        - name: tfidfvectorizer
+          endpoint:
+            type: REST
+          type: MODEL
+          children:
+          - name: lrclassifier
+            endpoint:
+              type: REST
+            type: MODEL
+            children: []
+      name: cleantext
+      endpoint:
+        type: REST
+      type: MODEL
+    name: single-model
+    replicas: 1
+    annotations:
+      predictor_version: v1
