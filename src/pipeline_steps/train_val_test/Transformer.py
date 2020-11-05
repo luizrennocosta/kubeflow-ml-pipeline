@@ -9,7 +9,7 @@ class Transformer(object):
             self._lr_model = dill.load(model_file)
 
     def predict(self, X, feature_names):
-        logging.warning(X)
+        logging.info(X)
         prediction = self._lr_model.predict_proba(X)
-        logging.warning(prediction)
+        logging.info(prediction)
         return prediction

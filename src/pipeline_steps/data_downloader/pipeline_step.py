@@ -2,15 +2,8 @@ import click
 import dill
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
-import sys
 import logging
 from pathlib import Path
-
-logging.basicConfig(
-    stream=sys.stdout,
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
 
 
 @click.command()

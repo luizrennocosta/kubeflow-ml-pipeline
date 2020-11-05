@@ -27,6 +27,8 @@ Este projeto envolve a definição de um pipeline de Machine Learning de ponta a
 
 (\*): Devido a limitações de tempo, conhecimento da ferramenta e infraestrutura on-prem, esta etapa não foi totalmente concluída, apenas arquitetada em código.
 
+Para ambos os modelos, a entrada foi apenas o `review_body`, contendo o corpo do _review_ do usuário, enquanto a saída foi a _feature_ `product_category`, consistindo de 34 diferentes categorias de produto (portanto um problema de classificação multiclasse).
+
 # Ingestão
 A fase de ingestão é muito simples, é apenas um request para baixar o arquivo especificado pelo desafio. Depois o arquivo é salvo fisicamente em um volume que é compartilhado com os próximos componentes.
 
@@ -85,4 +87,14 @@ O modelo escolhido para esse *approach* foi um super simples apenas para uma pro
 
 # Resultados
 
-As análises de resultado dos modelos 
+As métricas para o conjunto de teste foram:
+
+| Model               | Accuracy | Precision | Recall |
+|---------------------|----------|-----------|--------|
+| Logistic Regression | 72.5%    | 41.0%     | 22.3%  |
+| Simple Conv Net     | 72.9%    | 25.0%     | 20.0%  |
+
+Isso considerando o modelo de redes convolucionais treinando por apenas 1 época (!!). A limitação de épocas se deve ao extenso tempo de treinamento e curto período de entrega deste projeto. Os resultados indicam que o modelo de regressão linear com tf-idf obteve uma performance significativamente melhor, perdendo um pouco em acurácia mas com uma precisão muito maior, mostrando uma maior taxa de verdadeiros positivos.
+
+# Roteiro de execução
+Para executar as pipes de treinamento e avaliação, basta adicionar os arquivos das pipelines (`lr_pipeline.py.tar.gz` e `deep_model_pipeline.py.tar.gz`) no Kubeflow. Os containers são auto-contidos e (deveriam) executar toda a pipe sem problemas.

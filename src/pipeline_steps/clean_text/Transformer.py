@@ -1,5 +1,3 @@
-import re
-import pandas as pd
 import logging
 import nltk
 
@@ -8,9 +6,9 @@ nltk.download("stopwords")
 
 class Transformer:
     def predict(self, X, feature_names=["review_body"]):
-        logging.warning(X)
+        logging.info(X)
         X_clean = Transformer.transform_clean_text(X, feature_names)
-        logging.warning(X_clean)
+        logging.info(X_clean)
         return X_clean
 
     def fit(self, X, y=None, **fit_params):

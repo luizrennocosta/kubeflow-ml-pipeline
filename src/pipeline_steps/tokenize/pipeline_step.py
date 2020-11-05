@@ -23,7 +23,7 @@ def run_pipeline(
 ):
 
     with open(in_path, "rb") as in_f:
-        x, _ = dill.load(in_f)
+        x, labels = dill.load(in_f)
 
     x = x.flatten()
 
@@ -51,7 +51,7 @@ def run_pipeline(
 
     try:
         with open(out_path, "wb") as out_f:
-            dill.dump(y, out_f)
+            dill.dump((y, labels), out_f)
     except FileNotFoundError:
         Path(out_path).parents[0].mkdir(parents=True, exist_ok=True)
 

@@ -5,13 +5,13 @@ from sklearn import metrics
 from pathlib import Path
 import pandas as pd
 import json
-
+import logging
 
 @click.command()
 @click.option("--data-folder", default="/mnt")
-@click.option("--predicted-train-data", default="/mnt/data/predicted_train.data")
-@click.option("--predicted-val-data", default="/mnt/data/predicted_val.data")
-@click.option("--predicted-test-data", default="/mnt/data/predicted_test.data")
+@click.option("--predicted-train-data", default="/mnt/predicted_train.data")
+@click.option("--predicted-val-data", default="/mnt/predicted_val.data")
+@click.option("--predicted-test-data", default="/mnt/predicted_test.data")
 def run_pipeline(
     data_folder,
     predicted_train_data,
@@ -30,7 +30,7 @@ def run_pipeline(
 
     with open(Path(data_folder).joinpath("test.data"), "rb") as test_f:
         target_data["_test"] = dill.load(test_f)
-        print(target_data["_test"])
+        logging.info(target_data["_test"])
 
     with open(predicted_train_data, "rb") as train_f:
         predicted_data["_train"] = np.argmax(dill.load(train_f), axis=1)
@@ -57,7 +57,7 @@ def run_pipeline(
         _, labels = target_data[suffix]
         cm = metrics.confusion_matrix(labels, Y)
 
-        with open(f"/cm{suffix}.csv", "w") as cm_f:
+        with open(f"/mnt/cm{suffix}.csv", "w") as cm_f:
             pd.DataFrame(cm).to_csv(cm_f, header=False, index=False)
 
         suffix = suffix.replace("_", "-")
@@ -69,20 +69,21 @@ def run_pipeline(
             {"name": "target", "type": "CATEGORY"},
             {"name": "predicted", "type": "CATEGORY"},
         ]
-        cm_dict["source"] = f"/cm{suffix}.csv"
+        cm_dict["source"] = f"/mnt/cm{suffix}.csv"
         cm_dict["labels"] = labels.flatten().tolist()
 
         metadata_json["outputs"].append(cm_dict)
         for metric in evaluated_metrics:
             metric_dict = {}
             metric_dict["name"] = metric + suffix
-            print(metric)
+            logging.info(metric)
             if metric == "precision" or metric == "recall":
                 metric_dict["numberValue"] = evaluated_metrics[metric](
                     labels, Y, average="macro"
                 )
             else:
                 metric_dict["numberValue"] = evaluated_metrics[metric](labels, Y)
+            print(metric+suffix, metric_dict["numberValue"])
             metric_dict["format"] = "RAW"
             metrics_json["metrics"].append(metric_dict)
 

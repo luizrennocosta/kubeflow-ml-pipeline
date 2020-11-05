@@ -1,5 +1,4 @@
 import click
-import numpy as np
 import dill
 from sklearn.model_selection import train_test_split
 from pathlib import Path

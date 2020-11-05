@@ -1,18 +1,8 @@
 import click
-import urllib.request
-import shutil
 import zipfile
-import os
 import logging
-import sys
 import requests
 from tqdm import tqdm
-
-logging.basicConfig(
-    stream=sys.stdout,
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
 
 
 @click.command()

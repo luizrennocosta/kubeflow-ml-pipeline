@@ -1,7 +1,4 @@
-import re
-import pandas as pd
 import logging
-import nltk
 import numpy as np
 from tqdm import tqdm
 from pathlib import Path
@@ -9,9 +6,9 @@ from pathlib import Path
 
 class Transformer:
     def predict(self, X, path_to_glove_file):
-        # logging.warning(X)
+        # logging.info(X)
         embedding_matrix = Transformer.create_embed_matrix(X, path_to_glove_file)
-        # logging.warning(embedding_matrix)
+        # logging.info(embedding_matrix)
         return embedding_matrix
 
     def fit(self, X, y=None, **fit_params):

@@ -1,15 +1,10 @@
 import click
-import numpy as np
 import dill
-from sklearn.linear_model import LogisticRegression
-
 from tensorflow.keras import layers
 from tensorflow.keras import Input, Model, initializers
-from sklearn.model_selection import train_test_split
 from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras.models import load_model
-from pathlib import Path
-
+import logging
 
 def create_model(embedding_layer, n_classes):
     int_sequences_input = Input(shape=(None,), dtype="int64")
@@ -52,7 +47,7 @@ def run_pipeline(
         embedding_matrix = dill.load(ew_f)
 
     opm = RMSprop(learning_rate=0.01)
-    print(embedding_matrix.shape)
+    logging.info(embedding_matrix.shape)
     if action == "train":
         embedding_layer = layers.Embedding(
             embedding_matrix.shape[0],
