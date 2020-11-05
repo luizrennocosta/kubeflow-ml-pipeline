@@ -69,7 +69,7 @@ Dois modelos foram utilzados, um de Regressão Logística utilizando uma transfo
 ## Regressão Logística
 O modelo de RL é um dos mais clássicos utilizados nos mais variados problemas de classificação. Ele se baseia no modelo de regressão linear utilizando uma função de ativação sigmoidal (função logística):
 
-![lr_equation](http://www.sciweavers.org/upload/Tex2Img_1604552726/render.png)
+![lr_equation](https://i.imgur.com/WCMbEHR.png)
 
 onde `X` é o vetor de entrada, e `theta` a matriz de parâmetros a serem otimizados. Essa otimização de parâmetros é normalmente feita através de algoritmos como a Descida de Gradiente, que se utiliza de alguma função de _performance_ e através de pequenos incrementos ou decrementos nestes parâmetros, estima o gradiente e toma decisões de atualização desses parâmetros para a minimização ou maximação dessa função de _performance_. 
 A regressão logística normalmente é resolvida maximizando a _likelihood_ ou minimizando uma perda de entropia cruzada. No caso de regressão logística binária, é possível encontrar uma atualização através do método de mínimos quadrados.
@@ -77,7 +77,7 @@ A regressão logística normalmente é resolvida maximizando a _likelihood_ ou m
 ## Rede Neural Convolucional
 Redes neurais tem como base o cálculo do gradiente do erro entre o valor predito pelo modelo e o valor esperado, normalmente este tipo de modelo realiza uma operação não linear entre a entrada e a saída se utilizando de diversas transformações lineares (operações matriciais) seguidas de ativações não lineares:
 
-![nn_equation](http://www.sciweavers.org/upload/Tex2Img_1604553541/render.png)
+![nn_equation](https://i.imgur.com/QddojK3.png)
 
 Onde `f()` representa uma função de ativação não linear (normalmente "reLU", "tanh" ou "sigmoid"), e `W` o conjunto de parâmetros a serem otimizados. Redes neurais convolucionais não realizam uma operação de multiplicação de matrizes entre `W` e `X`, mas sim uma operação de **convolução**. Esse tipo de rede ficou muito famoso nos últimos anos pela sua capacidade de aprendizado (dado um conjunto suficientemente grande de dados) e aplicação para problemas de imagem, principalmente classificação.
 
